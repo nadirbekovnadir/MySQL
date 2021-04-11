@@ -60,19 +60,29 @@ SELECT * FROM logs;
 -- Вероятно подход имеет право на жизнь, однако, проверка с небольшими значениями level выполнялась крайне долго
 -- Вариант с CROSS JOIN пытался использовать в предыдущих уроках. Данный подход неудобен для автоматизации.
 
-/*WITH RECURSIVE sequence2 AS
-(
-	WITH RECURSIVE 
-	sequence1 AS (
+-- Увидел в уроке, что все же требовался запрос и, не досмотрев дальнейшего разбора решил доделать рекурсию
+-- Немного подумал и понял, где была ошибка. Довел рекурсию до логического конца
+
+-- Можно использовать для задания последовательно увеличивающегося счетчика
+SET @cnt = 0;
+
+-- Для оптимизации стоило бы создать временную таблицу (или постоянную, которая будет удалена)
+-- В дальнейшем используя ее в качестве некоторого универсально счетчика (с максимумом равным 1000000 строкам)
+INSERT INTO users
+	WITH RECURSIVE sequence2 AS
+	(
+		WITH RECURSIVE 
+		sequence1 AS (
+			SELECT 1 AS level
+			UNION ALL
+			SELECT level + 1 AS value FROM sequence1 WHERE sequence1.level < 2
+		)
 		SELECT 1 AS level
 		UNION ALL
-		SELECT level + 1 AS value FROM sequence1 WHERE sequence1.level < 10
+		SELECT sequence2.level + 1 FROM sequence2 CROSS JOIN sequence1 WHERE sequence2.level < 20 LIMIT 1000000
 	)
-	SELECT 1 AS level
-	UNION ALL
-	SELECT sequence2.level + 1 FROM sequence2 CROSS JOIN sequence1 WHERE sequence2.level < 10
-)
-SELECT level FROM sequence2;*/
+	SELECT NULL, 'Рекурсия', NOW(), NOW(), NOW(), '112332' FROM sequence2;
+
 
 DROP PROCEDURE UsersFilling;
 
@@ -90,9 +100,9 @@ DELIMITER ;
 
 -- Отменил вставку, очень длительна
 -- Вероятно, есть смысл готовить блоки заранее, чтобы оптимизировать выполнение
-CALL UsersFilling(1000000);
+-- CALL UsersFilling(1000000);
 
-SELECT COUNT(u.id) FROM users u;
+SELECT u.id, u.name FROM users u order by id DESC LIMIT 100;
 
 
 
