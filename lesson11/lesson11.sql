@@ -2,20 +2,22 @@
 -- ========================== Первая часть ========================== --
 -- ================================================================== --
 
+Увидел, что забыл самое главное - сменить тип таблицы на Archive
+Произвел корректировку в данном коммите
+(Плюс мелкие изменения)
+
 -- ------------------------ Первое задание ------------------------ --
 
 USE shop;
 
+DROP TABLE IF EXISTS logs;
 CREATE TABLE IF NOT EXISTS logs (
-	id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT UNIQUE,
+	id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
 	table_name VARCHAR(50) NOT NULL,
 	value_id BIGINT UNSIGNED NOT NULL,
 	value_name VARCHAR(50) NOT NULL,
-	created_at datetime NOT NULL,
-	updated_at datetime NOT NULL,
-	PRIMARY KEY(id)
-);
-
+	created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE = Archive;
 
 DROP TRIGGER IF EXISTS users_insert_logInsert;
 
@@ -23,7 +25,7 @@ DELIMITER $$
 CREATE TRIGGER users_insert_logInsert AFTER INSERT ON users
 FOR EACH ROW
 BEGIN
-	INSERT INTO logs VALUES (NULL, 'users', NEW.id, NEW.name, NEW.created_at, NEW.updated_at);
+	INSERT INTO logs VALUES (NULL, 'users', NEW.id, NEW.name, DEFAULT);
 END$$
 DELIMITER ;
 
@@ -33,7 +35,7 @@ DELIMITER $$
 CREATE TRIGGER products_insert_logInsert AFTER INSERT ON products
 FOR EACH ROW
 BEGIN
-	INSERT INTO logs VALUES (NULL, 'products', NEW.id, NEW.name, NEW.created_at, NEW.updated_at);
+	INSERT INTO logs VALUES (NULL, 'products', NEW.id, NEW.name, DEFAULT);
 END$$
 DELIMITER ;
 
@@ -43,7 +45,7 @@ DELIMITER $$
 CREATE TRIGGER catalogs_insert_logInsert AFTER INSERT ON catalogs
 FOR EACH ROW
 BEGIN
-	INSERT INTO logs VALUES (NULL, 'catalogs', NEW.id, NEW.name, NOW(), NOW());
+	INSERT INTO logs VALUES (NULL, 'catalogs', NEW.id, NEW.name, DEFAULT);
 END$$
 DELIMITER ;
 
@@ -55,6 +57,8 @@ SELECT * FROM logs;
 -- ------------------------ Второе задание ------------------------ --
 
 -- Эксперимент с рекурсиями
+-- Вероятно подход имеет право на жизнь, однако, проверка с небольшими значениями level выполнялась крайне долго
+-- Вариант с CROSS JOIN пытался использовать в предыдущих уроках. Данный подход неудобен для автоматизации.
 
 /*WITH RECURSIVE sequence2 AS
 (
@@ -95,6 +99,8 @@ SELECT COUNT(u.id) FROM users u;
 -- ========================== Вторая часть ========================== --
 -- ================================================================== --
 
+Увидел на уроке, что требовалось привести команды в качастве решения, однако, не буду исправлять задним числом
+
 -- ------------------------ Первое задание ------------------------ --
 
 Выберу Hash
@@ -108,7 +114,7 @@ SELECT COUNT(u.id) FROM users u;
 И
 Где: ключ-адрес, значение-имя
 
-Возможно также осуществлять хранение внутри Hash (в двух).
+Возможно также осуществлять хранение внутри Hash (в двух) по схеме, приведенной выше.
 
 
 -- ------------------------ Третье задание ------------------------ --
